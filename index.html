@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>SoulStone — Ruhsal Gelişim Yolculuğun</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0A0F1F; --twilight:#1B1638; --twilight-2:#241d47;
+    --gold:#C9A24B; --gold-soft:#E4C77E; --rose:#D98E96; --seafoam:#6FBFA8;
+    --parchment:#F1E9DA; --parchment-dim:#B9B3C9;
+    --glass-border:rgba(241,233,218,0.10); --glass-fill:rgba(255,255,255,0.045);
+    --c-root:#B23A3A; --c-sacral:#C9752E; --c-solar:#D4AF37; --c-heart:#4E9A6B;
+    --c-throat:#4A7FA6; --c-thirdeye:#5A4E9A; --c-crown:#8B6FB0;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; height:100%; background:var(--ink); overflow:hidden;}
+  body{ font-family:'Manrope', sans-serif; color:var(--parchment); display:flex; align-items:center; justify-content:center; }
+  @media (prefers-reduced-motion: reduce){ *{ animation-duration:0.001ms !important; transition-duration:0.001ms !important;} }
+  .display{ font-family:'Fraunces', serif; }
+  #stage{ position:relative; width:100%; max-width:480px; height:100vh; max-height:960px; background:var(--ink); overflow:hidden; box-shadow:0 40px 120px rgba(0,0,0,0.6); }
+  @media (min-width:560px){ body{ padding:24px; } #stage{ border-radius:34px; border:1px solid rgba(255,255,255,0.06); } }
+  canvas#stars{ position:absolute; inset:0; width:100%; height:100%; z-index:0; opacity:0.8; }
+  .aura-glow{ position:absolute; left:50%; top:-10%; width:140%; aspect-ratio:1/1; transform:translateX(-50%); background:radial-gradient(circle, var(--aura-color,#5A4E9A) 0%, rgba(90,78,154,0) 62%); filter:blur(10px); opacity:0.55; z-index:0; pointer-events:none; transition:background 1.6s ease; }
+  #app{ position:relative; z-index:2; height:100%; display:flex; flex-direction:column; }
+  header.topbar{ display:flex; align-items:center; justify-content:space-between; padding:18px 20px 8px; flex-shrink:0; }
+  .brand{ display:flex; align-items:center; gap:8px; }
+  .brand span{ font-family:'Fraunces', serif; font-size:19px; letter-spacing:0.02em; font-weight:500; }
+  .aura-avatar{ width:38px; height:38px; border-radius:50%; position:relative; cursor:pointer; background:radial-gradient(circle at 35% 30%, var(--aura-color,#5A4E9A), #14102b 78%); border:1px solid var(--glass-border); box-shadow:0 0 18px -2px var(--aura-color,#5A4E9A); }
+  main{ flex:1; overflow-y:auto; overflow-x:hidden; padding:6px 20px 100px; -webkit-overflow-scrolling:touch; }
+  main::-webkit-scrollbar{ width:0; }
+  .view{ display:none; animation:viewIn .5s cubic-bezier(.19,1,.22,1); }
+  .view.active{ display:block; }
+  @keyframes viewIn{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+  .eyebrow{ font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--parchment-dim); font-weight:700; }
+  h1.page-title{ font-family:'Fraunces', serif; font-weight:500; font-size:28px; margin:4px 0 2px; }
+  p.page-sub{ color:var(--parchment-dim); font-size:14px; margin:0 0 20px; line-height:1.5; }
+  .card{ background:var(--glass-fill); border:1px solid var(--glass-border); border-radius:20px; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); padding:18px; margin-bottom:14px; }
+  .companion-stage{ position:relative; height:190px; display:flex; align-items:center; justify-content:center; margin-bottom:8px; }
+  .companion-orb{ width:104px; height:104px; border-radius:50%; position:relative; background:radial-gradient(circle at 38% 30%, var(--seafoam), #16233a 75%); box-shadow:0 0 50px -6px var(--seafoam); animation:bob 4.5s ease-in-out infinite; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .companion-orb .glyph{ font-size:38px; filter:drop-shadow(0 0 8px rgba(0,0,0,.4)); }
+  @keyframes bob{ 0%,100%{ transform:translateY(0px) } 50%{ transform:translateY(-10px) } }
+  .stone-ring{ position:absolute; inset:0; }
+  .stone{ position:absolute; width:34px; height:34px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:15px; background:radial-gradient(circle at 35% 30%, var(--sc), #10142a 78%); box-shadow:0 0 16px -3px var(--sc); animation:float 5s ease-in-out infinite; transition:transform .25s ease; }
+  .stone:hover{ transform:scale(1.15); }
+  @keyframes float{ 0%,100%{ transform:translateY(0)} 50%{ transform:translateY(-7px)} }
+  .companion-name{ text-align:center; font-family:'Fraunces', serif; font-size:16px; margin-top:2px; }
+  .companion-meta{ text-align:center; color:var(--parchment-dim); font-size:12px; margin-top:2px; }
+  .stat-row{ display:flex; gap:10px; margin:16px 0; }
+  .stat-pill{ flex:1; background:var(--glass-fill); border:1px solid var(--glass-border); border-radius:14px; padding:10px 12px; text-align:center;}
+  .stat-pill .num{ font-family:'Fraunces', serif; font-size:18px; color:var(--gold-soft); }
+  .stat-pill .lbl{ font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--parchment-dim); margin-top:2px; }
+  .section-label{ font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--parchment-dim); font-weight:700; margin:22px 0 10px; }
+  .stone-list{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .stone-chip{ display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:14px; background:var(--glass-fill); border:1px solid var(--glass-border); cursor:pointer; }
+  .stone-chip .dot{ width:22px; height:22px; border-radius:50%; flex-shrink:0; background:radial-gradient(circle at 35% 30%, var(--sc), #10142a 78%); box-shadow:0 0 10px -2px var(--sc); }
+  .stone-chip .info b{ display:block; font-size:12.5px; font-weight:700; }
+  .stone-chip .info span{ font-size:10.5px; color:var(--parchment-dim); }
+  .slider-row{ margin-bottom:16px; }
+  .slider-row label{ display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px; color:var(--parchment-dim); }
+  .slider-row label b{ color:var(--parchment); font-weight:600; }
+  input[type=range]{ -webkit-appearance:none; width:100%; height:4px; border-radius:4px; background:rgba(255,255,255,.12); outline:none; }
+  input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:18px; height:18px; border-radius:50%; background:var(--gold-soft); box-shadow:0 0 10px var(--gold); cursor:pointer; border:2px solid var(--ink); }
+  textarea{ width:100%; min-height:88px; resize:none; border-radius:14px; border:1px solid var(--glass-border); background:rgba(0,0,0,.18); color:var(--parchment); font-family:'Manrope',sans-serif; font-size:13.5px; padding:12px; outline:none; }
+  textarea::placeholder{ color:var(--parchment-dim); }
+  .btn{ display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:13px 20px; border-radius:14px; border:none; cursor:pointer; font-family:'Manrope',sans-serif; font-weight:700; font-size:13.5px; letter-spacing:.02em; background:linear-gradient(135deg, var(--gold-soft), var(--gold)); color:#241a06; box-shadow:0 8px 22px -8px rgba(201,162,75,.7); transition:transform .15s ease, box-shadow .15s ease; width:100%; }
+  .btn:active{ transform:scale(.97); }
+  .btn:disabled{ opacity:.55; cursor:default; }
+  .btn.ghost{ background:var(--glass-fill); color:var(--parchment); border:1px solid var(--glass-border); box-shadow:none; }
+  .journal-entry{ padding:12px 14px; border-radius:14px; background:var(--glass-fill); border:1px solid var(--glass-border); margin-bottom:8px; }
+  .journal-entry .date{ font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--parchment-dim); }
+  .journal-entry p{ margin:4px 0 0; font-size:13px; line-height:1.5; }
+  .quest{ display:flex; align-items:center; gap:12px; padding:13px 14px; border-radius:16px; background:var(--glass-fill); border:1px solid var(--glass-border); margin-bottom:10px; }
+  .quest .qicon{ width:38px; height:38px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; background:rgba(255,255,255,.05); }
+  .quest .qbody{ flex:1; min-width:0; }
+  .quest .qbody b{ font-size:13.5px; display:block; }
+  .qprog{ height:5px; border-radius:5px; background:rgba(255,255,255,.1); margin-top:6px; overflow:hidden; }
+  .qprog i{ display:block; height:100%; background:linear-gradient(90deg,var(--seafoam),var(--gold-soft)); border-radius:5px; }
+  .quest .qreward{ font-size:11px; color:var(--gold-soft); margin-top:2px; }
+  .qclaim{ flex-shrink:0; padding:8px 12px; border-radius:10px; font-size:11.5px; font-weight:700; border:none; cursor:pointer; }
+  .qclaim.ready{ background:var(--gold-soft); color:#241a06; }
+  .qclaim.done{ background:transparent; color:var(--parchment-dim); border:1px solid var(--glass-border); }
+  .qclaim.locked{ background:transparent; color:var(--parchment-dim); border:1px solid var(--glass-border); opacity:.5; }
+  .chat{ display:flex; flex-direction:column; gap:10px; margin-bottom:14px; }
+  .msg{ max-width:82%; padding:11px 14px; border-radius:16px; font-size:13.5px; line-height:1.5; }
+  .msg.mentor{ background:var(--glass-fill); border:1px solid var(--glass-border); align-self:flex-start; border-bottom-left-radius:4px; }
+  .msg.user{ background:linear-gradient(135deg, var(--twilight-2), #3a2f66); align-self:flex-end; border-bottom-right-radius:4px; }
+  .msg .tag{ display:block; font-size:9.5px; text-transform:uppercase; letter-spacing:.1em; color:var(--parchment-dim); margin-bottom:4px; }
+  .chat-input{ display:flex; gap:8px; position:sticky; bottom:0; }
+  .chat-input input{ flex:1; border-radius:14px; border:1px solid var(--glass-border); background:rgba(0,0,0,.2); color:var(--parchment); padding:12px 14px; font-size:13.5px; outline:none; font-family:'Manrope',sans-serif; }
+  .chat-input button{ width:44px; height:44px; flex-shrink:0; border-radius:14px; border:none; background:var(--gold-soft); cursor:pointer; font-size:16px; }
+  nav.tabbar{ position:absolute; left:0; right:0; bottom:0; z-index:3; display:flex; padding:10px 14px calc(14px + env(safe-area-inset-bottom)); background:linear-gradient(to top, rgba(10,15,31,0.96) 60%, rgba(10,15,31,0)); backdrop-filter:blur(6px); }
+  nav.tabbar button{ flex:1; background:none; border:none; color:var(--parchment-dim); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px; padding:6px 0; font-family:'Manrope',sans-serif; }
+  nav.tabbar button svg{ width:20px; height:20px; stroke:currentColor; }
+  nav.tabbar button span{ font-size:10px; font-weight:700; letter-spacing:.02em; }
+  nav.tabbar button.active{ color:var(--gold-soft); }
+  #toast{ position:absolute; left:50%; bottom:96px; transform:translate(-50%, 20px); z-index:10; background:rgba(20,16,40,.92); border:1px solid var(--glass-border); backdrop-filter:blur(10px); padding:10px 18px; border-radius:100px; font-size:12.5px; font-weight:600; opacity:0; pointer-events:none; transition:all .35s cubic-bezier(.19,1,.22,1); white-space:nowrap; max-width:88%; overflow:hidden; text-overflow:ellipsis; }
+  #toast.show{ opacity:1; transform:translate(-50%, 0); }
+  #authScreen, #onboarding{ position:absolute; inset:0; z-index:20; background:var(--ink); display:flex; flex-direction:column; padding:26px 24px; overflow-y:auto; }
+  .ob-step{ display:none; flex:1; flex-direction:column; }
+  .ob-step.active{ display:flex; animation:viewIn .5s cubic-bezier(.19,1,.22,1); }
+  .ob-progress{ display:flex; gap:6px; margin-bottom:28px; }
+  .ob-progress i{ flex:1; height:3px; border-radius:3px; background:rgba(255,255,255,.1); }
+  .ob-progress i.on{ background:var(--gold-soft); }
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:12px; color:var(--parchment-dim); margin-bottom:7px; letter-spacing:.03em; }
+  .field input{ width:100%; padding:13px 14px; border-radius:13px; border:1px solid var(--glass-border); background:rgba(255,255,255,.04); color:var(--parchment); font-family:'Manrope',sans-serif; font-size:14px; outline:none; }
+  .ob-hero{ text-align:center; margin:auto 0; }
+  .ob-hero .glyph{ font-size:56px; display:block; margin-bottom:18px; filter:drop-shadow(0 0 20px rgba(201,162,75,.5)); }
+  .disclaimer{ font-size:11px; color:var(--parchment-dim); line-height:1.5; margin-top:auto; padding-top:14px; }
+  .reveal-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:18px 0; }
+  .reveal-card{ text-align:center; padding:16px 8px; border-radius:16px; background:var(--glass-fill); border:1px solid var(--glass-border); }
+  .reveal-card .k{ font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:var(--parchment-dim); }
+  .reveal-card .v{ font-family:'Fraunces',serif; font-size:17px; margin-top:4px; color:var(--gold-soft); }
+  .modal-backdrop{ position:absolute; inset:0; z-index:15; background:rgba(6,8,18,.72); backdrop-filter:blur(4px); display:none; align-items:flex-end; }
+  .modal-backdrop.show{ display:flex; }
+  .modal-sheet{ width:100%; background:var(--twilight); border-radius:26px 26px 0 0; padding:22px 22px 30px; border-top:1px solid var(--glass-border); animation:sheetUp .4s cubic-bezier(.19,1,.22,1); max-height:70%; overflow-y:auto;}
+  @keyframes sheetUp{ from{ transform:translateY(30px); opacity:0;} to{ transform:translateY(0); opacity:1;} }
+  .auth-toggle{ text-align:center; font-size:12.5px; color:var(--parchment-dim); margin-top:14px; }
+  .auth-toggle a{ color:var(--gold-soft); cursor:pointer; font-weight:700; text-decoration:none; }
+  .error-text{ color:var(--rose); font-size:12.5px; margin-top:10px; min-height:16px; }
+  .config-warning{ position:absolute; inset:0; z-index:50; background:var(--ink); display:flex; align-items:center; justify-content:center; padding:30px; text-align:center; }
+  .config-warning code{ background:rgba(255,255,255,.08); padding:2px 6px; border-radius:6px; font-size:12px; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="stars"></canvas>
+  <div class="aura-glow" id="auraGlow"></div>
+
+  <!-- ================= CONFIG WARNING ================= -->
+  <div class="config-warning" id="configWarning" style="display:none;">
+    <div>
+      <div style="font-size:40px; margin-bottom:14px;">⚠️</div>
+      <p style="font-size:14px; line-height:1.6; color:var(--parchment-dim);">
+        Backend henüz bağlanmadı. Dosyanın en altındaki<br>
+        <code>SUPABASE_URL</code> ve <code>SUPABASE_ANON_KEY</code><br>
+        değerlerini kendi Supabase projenle doldurman gerekiyor.<br><br>
+        Kurulum adımları için <code>KURULUM.md</code> dosyasına bak.
+      </p>
+    </div>
+  </div>
+
+  <!-- ================= AUTH ================= -->
+  <div id="authScreen">
+    <div class="ob-hero" style="margin:auto 0 0;">
+      <span class="glyph">✦</span>
+      <div class="eyebrow">Sana özel bir dünya</div>
+      <h1 class="page-title" style="font-size:26px">SoulStone</h1>
+      <p class="page-sub" id="authSubtitle">Yolculuğuna devam etmek için giriş yap.</p>
+    </div>
+    <div class="field"><label>E-posta</label><input id="authEmail" type="email" placeholder="sen@example.com"></div>
+    <div class="field"><label>Şifre</label><input id="authPassword" type="password" placeholder="En az 6 karakter"></div>
+    <div class="error-text" id="authError"></div>
+    <button class="btn" id="authSubmitBtn" onclick="submitAuth()">Giriş yap</button>
+    <div class="auth-toggle" id="authToggle">Hesabın yok mu? <a onclick="toggleAuthMode()">Kayıt ol</a></div>
+  </div>
+
+  <!-- ================= ONBOARDING ================= -->
+  <div id="onboarding" style="display:none;">
+    <div class="ob-progress" id="obProgress"></div>
+    <div class="ob-step active" data-step="0">
+      <div class="ob-hero">
+        <span class="glyph">✦</span>
+        <h1 class="page-title" style="font-size:26px">Hoş geldin</h1>
+        <p class="page-sub">Yedi Kutsal Taşını uyandır, Ruh Yoldaşını büyüt. Önce seni biraz tanıyalım — bu bilgiler hesabına kalıcı olarak kaydedilecek.</p>
+      </div>
+      <button class="btn" onclick="obNext()">Başla</button>
+    </div>
+    <div class="ob-step" data-step="1">
+      <div class="eyebrow">Adım 1 / 2</div>
+      <h1 class="page-title">Sen kimsin?</h1>
+      <div class="field"><label>İsim</label><input id="obName" type="text" placeholder="Adını yaz"></div>
+      <div class="field"><label>Doğum tarihi</label><input id="obDate" type="date"></div>
+      <div class="field"><label>Doğum saati (opsiyonel)</label><input id="obTime" type="time"></div>
+      <div class="field"><label>Doğum yeri (opsiyonel)</label><input id="obPlace" type="text" placeholder="Şehir, Ülke"></div>
+      <button class="btn" id="obGenBtn" onclick="generateChart()">Haritamı oluştur ve kaydet</button>
+      <p class="disclaimer">Doğum haritası ve astrolojik içerikler sembolik bir rehberlik aracıdır, kesin öngörü değildir.</p>
+    </div>
+    <div class="ob-step" data-step="2">
+      <div class="eyebrow">Adım 2 / 2</div>
+      <h1 class="page-title" id="revealTitle">Haritan hazır ✦</h1>
+      <div class="reveal-grid">
+        <div class="reveal-card"><div class="k">Güneş</div><div class="v" id="rvSun">—</div></div>
+        <div class="reveal-card"><div class="k">Ay</div><div class="v" id="rvMoon">—</div></div>
+        <div class="reveal-card"><div class="k">Yükselen</div><div class="v" id="rvRise">—</div></div>
+        <div class="reveal-card"><div class="k">Element</div><div class="v" id="rvElement">—</div></div>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="font-size:34px; margin-bottom:6px;" id="rvCompanionGlyph">🦊</div>
+        <div class="eyebrow">Ruh Yoldaşın uyandı</div>
+        <div class="display" style="font-size:18px; margin-top:4px;" id="rvCompanionName">—</div>
+      </div>
+      <button class="btn" onclick="enterApp()" style="margin-top:auto;">Sığınağıma gir</button>
+    </div>
+  </div>
+
+  <!-- ================= APP ================= -->
+  <div id="app" style="display:none;">
+    <header class="topbar">
+      <div class="brand"><span class="mark">✦</span><span class="display">SoulStone</span></div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button onclick="signOut()" style="background:none;border:none;color:var(--parchment-dim);font-size:11px;cursor:pointer;">Çıkış</button>
+        <div class="aura-avatar" id="avatarBtn" onclick="openProfile()"></div>
+      </div>
+    </header>
+    <main>
+      <section class="view active" id="view-sanctuary">
+        <div class="eyebrow">İyi akşamlar</div>
+        <h1 class="page-title" id="userNameTitle">Sığınağın</h1>
+        <div class="companion-stage">
+          <div class="stone-ring" id="stoneRing"></div>
+          <div class="companion-orb" onclick="openCompanion()"><span class="glyph" id="companionGlyphMain">🦊</span></div>
+        </div>
+        <div class="companion-name" id="companionNameMain">—</div>
+        <div class="companion-meta" id="companionMoodMain">—</div>
+        <div class="stat-row">
+          <div class="stat-pill"><div class="num" id="statSoulDust">0</div><div class="lbl">Ruh Tozu</div></div>
+          <div class="stat-pill"><div class="num" id="statCrystals">0</div><div class="lbl">Ay Kristali</div></div>
+          <div class="stat-pill"><div class="num" id="statStreak">0</div><div class="lbl">Gün Serisi</div></div>
+        </div>
+        <div class="section-label">Yedi Kutsal Taş</div>
+        <div class="stone-list" id="stoneList"></div>
+      </section>
+
+      <section class="view" id="view-journal">
+        <div class="eyebrow">Günlük Enerji</div>
+        <h1 class="page-title">Bugün nasılsın?</h1>
+        <p class="page-sub">Kayıtların Supabase'te hesabına kalıcı olarak kaydedilir.</p>
+        <div class="card">
+          <div class="slider-row"><label>Enerji <b id="lblEnergy">6</b></label><input type="range" min="1" max="10" value="6" id="sldEnergy" oninput="updateSliderLabel('sldEnergy','lblEnergy')"></div>
+          <div class="slider-row"><label>Ruh hali <b id="lblMood">7</b></label><input type="range" min="1" max="10" value="7" id="sldMood" oninput="updateSliderLabel('sldMood','lblMood')"></div>
+          <div class="slider-row"><label>Stres <b id="lblStress">4</b></label><input type="range" min="1" max="10" value="4" id="sldStress" oninput="updateSliderLabel('sldStress','lblStress')"></div>
+          <div class="field"><label>Minnettarlık / Not</label><textarea id="journalText" placeholder="Bugün neye minnettarsın..."></textarea></div>
+          <button class="btn" id="journalSaveBtn" onclick="submitJournal()">Günlüğü kaydet · +XP</button>
+        </div>
+        <div class="section-label">Geçmiş kayıtlar</div>
+        <div id="journalHistory"></div>
+      </section>
+
+      <section class="view" id="view-quests">
+        <div class="eyebrow">Bugünün Görevleri</div>
+        <h1 class="page-title">Görevler</h1>
+        <div id="questList"></div>
+      </section>
+
+      <section class="view" id="view-mentor">
+        <div class="eyebrow">Ruhsal Rehber</div>
+        <h1 class="page-title">Mentor</h1>
+        <p class="page-sub">Gerçek AI yanıtları — sunucu tarafında güvenli şekilde işlenir.</p>
+        <div class="chat" id="chatLog"></div>
+        <div class="chat-input">
+          <input type="text" id="chatInput" placeholder="Bir şey paylaş..." onkeydown="if(event.key==='Enter')sendChat()">
+          <button id="chatSendBtn" onclick="sendChat()">↑</button>
+        </div>
+      </section>
+    </main>
+    <nav class="tabbar">
+      <button class="active" data-view="sanctuary" onclick="switchView('sanctuary')"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9h14v-9"/></svg><span>Sığınak</span></button>
+      <button data-view="journal" onclick="switchView('journal')"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4Z"/><path d="M8 8h7M8 12h7"/></svg><span>Günlük</span></button>
+      <button data-view="quests" onclick="switchView('quests')"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg><span>Görevler</span></button>
+      <button data-view="mentor" onclick="switchView('mentor')"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 3 14 9l6 2-6 2-2 6-2-6-6-2 6-2Z"/></svg><span>Mentor</span></button>
+    </nav>
+    <div id="toast"></div>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop" onclick="if(event.target===this)closeModal()"><div class="modal-sheet" id="modalSheet"></div></div>
+</div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+/* ============================================================
+   KENDİ SUPABASE BİLGİLERİNİ BURAYA YAPIŞTIR
+   (Supabase Dashboard → Project Settings → API)
+   ============================================================ */
+const SUPABASE_URL = 'https://dlomyghduccliphmrebp.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_kwBPyqeu2Kv4pfpJ_TXGNw_V9XOvEOZ';
+/* Mentor fonksiyonu — Netlify'a deploy ettikten sonra bu path otomatik çalışır */
+const MENTOR_ENDPOINT = '/.netlify/functions/mentor-chat';
+/* ============================================================ */
+
+if (SUPABASE_URL.includes('YOUR-PROJECT')) {
+  document.getElementById('configWarning').style.display = 'flex';
+}
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const DEFAULT_QUESTS = [
+  {icon:'🧘', title:'10 dakika meditasyon yap', reward:'+40 Ruh Tozu', state:'ready', currencyType:'soulDust', amount:40},
+  {icon:'📖', title:'Bugünün günlüğünü yaz', reward:'+30 XP · Kalp Taşı', state:'locked', currencyType:null, amount:0},
+  {icon:'🚶', title:'Dışarıda 15 dakika yürü', reward:'+25 Ruh Tozu', state:'todo', currencyType:'soulDust', amount:25},
+  {icon:'💧', title:'Yeterince su iç', reward:'+15 Ruh Tozu', state:'todo', currencyType:'soulDust', amount:15},
+  {icon:'🙏', title:'Bir minnettarlık pratiği yap', reward:'+1 Ay Kristali', state:'ready', currencyType:'moonCrystals', amount:1},
+];
+const CHAKRA_META = {
+  root:{name:'Kök', color:'var(--c-root)', desc:'Güven ve köklenme'},
+  sacral:{name:'Sakral', color:'var(--c-sacral)', desc:'Yaratıcılık ve akış'},
+  solar:{name:'Solar Pleksus', color:'var(--c-solar)', desc:'Özgüven ve irade'},
+  heart:{name:'Kalp', color:'var(--c-heart)', desc:'Sevgi ve şefkat'},
+  throat:{name:'Boğaz', color:'var(--c-throat)', desc:'İfade ve gerçek'},
+  thirdeye:{name:'Üçüncü Göz', color:'var(--c-thirdeye)', desc:'Sezgi ve netlik'},
+  crown:{name:'Taç', color:'var(--c-crown)', desc:'Bağlantı ve bilgelik'},
+};
+const COMPANIONS = [
+  {species:'Tilki', glyph:'🦊', names:['Ember','Rue','Sable']},
+  {species:'Kurt', glyph:'🐺', names:['Luna','Wolfe','Nyx']},
+  {species:'Baykuş', glyph:'🦉', names:['Sage','Athel','Orin']},
+  {species:'Kaplan', glyph:'🐯', names:['Kiro','Tira','Ashe']},
+];
+const SUNS=['Koç','Boğa','İkizler','Yengeç','Aslan','Başak','Terazi','Akrep','Yay','Oğlak','Kova','Balık'];
+const ELEMENTS=['Ateş','Toprak','Hava','Su'];
+
+let session = null;
+let player = null; // player_state row
+let authMode = 'login';
+
+/* ---------------- auth ---------------- */
+window.toggleAuthMode = function(){
+  authMode = authMode === 'login' ? 'signup' : 'login';
+  document.getElementById('authSubmitBtn').textContent = authMode === 'login' ? 'Giriş yap' : 'Kayıt ol';
+  document.getElementById('authSubtitle').textContent = authMode === 'login' ? 'Yolculuğuna devam etmek için giriş yap.' : 'Yeni bir hesap oluştur.';
+  document.getElementById('authToggle').innerHTML = authMode === 'login'
+    ? 'Hesabın yok mu? <a onclick="toggleAuthMode()">Kayıt ol</a>'
+    : 'Zaten hesabın var mı? <a onclick="toggleAuthMode()">Giriş yap</a>';
+  document.getElementById('authError').textContent='';
+};
+
+window.submitAuth = async function(){
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const errEl = document.getElementById('authError'); errEl.textContent='';
+  const btn = document.getElementById('authSubmitBtn'); btn.disabled = true; btn.textContent = 'Bekleniyor...';
+  try{
+    let res;
+    if(authMode === 'login') res = await supabase.auth.signInWithPassword({ email, password });
+    else res = await supabase.auth.signUp({ email, password });
+    if(res.error) throw res.error;
+    if(authMode === 'signup' && !res.data.session){
+      errEl.textContent = 'Kayıt oldun. E-postana gelen onay linkine tıkla, sonra giriş yap.';
+      btn.disabled = false; btn.textContent = 'Giriş yap'; authMode='login';
+      return;
+    }
+    session = res.data.session;
+    await afterLogin();
+  }catch(e){
+    errEl.textContent = e.message || 'Bir hata oluştu.';
+  }finally{
+    btn.disabled = false; btn.textContent = authMode==='login' ? 'Giriş yap' : 'Kayıt ol';
+  }
+};
+
+window.signOut = async function(){
+  await supabase.auth.signOut();
+  location.reload();
+};
+
+async function afterLogin(){
+  document.getElementById('authScreen').style.display='none';
+  const { data, error } = await supabase.from('player_state').select('*').eq('user_id', session.user.id).maybeSingle();
+  if(error){ toast('Veri yüklenemedi: ' + error.message); return; }
+  if(!data){
+    document.getElementById('onboarding').style.display='flex';
+  } else {
+    player = data;
+    await loadJournalHistory();
+    await loadChatHistory();
+    enterApp();
+  }
+}
+
+/* ---------------- onboarding ---------------- */
+let obStep = 0;
+function renderObProgress(){
+  document.getElementById('obProgress').innerHTML = '<i></i><i></i><i></i>';
+  document.querySelectorAll('#obProgress i').forEach((d,i)=>{ d.classList.toggle('on', i <= obStep); });
+}
+window.obNext = function(){
+  document.querySelectorAll('.ob-step')[obStep].classList.remove('active');
+  obStep++;
+  document.querySelectorAll('.ob-step')[obStep].classList.add('active');
+  renderObProgress();
+};
+
+window.generateChart = async function(){
+  const name = document.getElementById('obName').value.trim() || 'Gezgin';
+  const btn = document.getElementById('obGenBtn'); btn.disabled = true; btn.textContent='Oluşturuluyor...';
+
+  const sun = SUNS[Math.floor(Math.random()*SUNS.length)];
+  const moon = SUNS[Math.floor(Math.random()*SUNS.length)];
+  const rising = SUNS[Math.floor(Math.random()*SUNS.length)];
+  const element = ELEMENTS[Math.floor(Math.random()*ELEMENTS.length)];
+  const c = COMPANIONS[Math.floor(Math.random()*COMPANIONS.length)];
+  const companionName = c.names[Math.floor(Math.random()*c.names.length)];
+
+  const { data, error } = await supabase.from('player_state').insert({
+    user_id: session.user.id,
+    name, sun, moon, rising, element,
+    companion: { species:c.species, glyph:c.glyph, name:companionName, loyalty:50, level:1, mood:'Sakin' },
+    quests: DEFAULT_QUESTS,
+  }).select().single();
+
+  btn.disabled = false; btn.textContent = 'Haritamı oluştur ve kaydet';
+  if(error){ toast('Kaydedilemedi: ' + error.message); return; }
+  player = data;
+
+  document.getElementById('rvSun').textContent = sun;
+  document.getElementById('rvMoon').textContent = moon;
+  document.getElementById('rvRise').textContent = rising;
+  document.getElementById('rvElement').textContent = element;
+  document.getElementById('rvCompanionGlyph').textContent = c.glyph;
+  document.getElementById('rvCompanionName').textContent = companionName + ', ' + c.species;
+  document.getElementById('revealTitle').textContent = name + ', haritan hazır ✦';
+  obNext();
+};
+
+window.enterApp = function(){
+  document.getElementById('onboarding').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('userNameTitle').textContent = player.name + "'ın Sığınağı";
+  document.getElementById('companionGlyphMain').textContent = player.companion.glyph;
+  document.getElementById('companionNameMain').textContent = player.companion.name;
+  document.getElementById('companionMoodMain').textContent = `${player.companion.mood} · Seviye ${player.companion.level} · Sadakat %${player.companion.loyalty}`;
+  document.getElementById('statSoulDust').textContent = player.currencies.soulDust;
+  document.getElementById('statCrystals').textContent = player.currencies.moonCrystals;
+  document.getElementById('statStreak').textContent = player.currencies.streak;
+  renderStones(); renderQuests(); renderJournalHistory(); renderChatLog();
+  setAura(0.55);
+};
+
+/* ---------------- views ---------------- */
+window.switchView = function(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.toggle('active', b.dataset.view===name));
+};
+
+/* ---------------- stones ---------------- */
+function renderStones(){
+  const ring = document.getElementById('stoneRing'); ring.innerHTML='';
+  const positions = [[50,4],[85,22],[92,58],[70,86],[30,86],[8,58],[15,22]];
+  const keys = Object.keys(CHAKRA_META);
+  keys.forEach((key,i)=>{
+    const meta = CHAKRA_META[key];
+    const el = document.createElement('div');
+    el.className='stone'; el.style.setProperty('--sc', meta.color);
+    el.style.left = positions[i][0]+'%'; el.style.top = positions[i][1]+'%';
+    el.style.animationDelay = (i*0.4)+'s'; el.textContent='✦';
+    el.onclick=()=>openStone(key);
+    ring.appendChild(el);
+  });
+  const list = document.getElementById('stoneList'); list.innerHTML='';
+  keys.forEach(key=>{
+    const meta = CHAKRA_META[key]; const s = player.stones[key];
+    const pct = Math.round(s.xp/s.max*100);
+    const chip = document.createElement('div');
+    chip.className='stone-chip'; chip.onclick=()=>openStone(key);
+    chip.innerHTML = `<div class="dot" style="--sc:${meta.color}"></div><div class="info"><b>${meta.name}</b><span>${s.stage} · %${pct}</span></div>`;
+    list.appendChild(chip);
+  });
+}
+window.openStone = function(key){
+  const meta = CHAKRA_META[key]; const s = player.stones[key];
+  const pct = Math.round(s.xp/s.max*100);
+  openModal(`
+    <div style="text-align:center; margin-bottom:14px;">
+      <div style="width:64px;height:64px;border-radius:50%;margin:0 auto 10px;background:radial-gradient(circle at 35% 30%, ${meta.color}, #10142a 78%); box-shadow:0 0 30px -4px ${meta.color}"></div>
+      <div class="display" style="font-size:20px;">${meta.name} Taşı</div>
+      <div style="color:var(--parchment-dim); font-size:13px; margin-top:4px;">${meta.desc}</div>
+    </div>
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--parchment-dim); margin-bottom:6px;"><span>${s.stage}</span><span>${s.xp} / ${s.max} XP</span></div>
+      <div class="qprog"><i style="width:${pct}%; background:linear-gradient(90deg, ${meta.color}, var(--gold-soft))"></i></div>
+    </div>
+    <button class="btn ghost" onclick="closeModal()" style="margin-top:12px;">Kapat</button>
+  `);
+};
+
+/* ---------------- companion ---------------- */
+window.openCompanion = function(){
+  const c = player.companion;
+  openModal(`
+    <div style="text-align:center;">
+      <div style="font-size:52px; margin-bottom:8px;">${c.glyph}</div>
+      <div class="display" style="font-size:20px;">${c.name}</div>
+      <div style="color:var(--parchment-dim); font-size:13px; margin-top:2px;">${c.species} · Seviye ${c.level} · ${c.mood}</div>
+    </div>
+    <div class="stat-row" style="margin-top:18px;"><div class="stat-pill"><div class="num">%${c.loyalty}</div><div class="lbl">Sadakat</div></div></div>
+    <button class="btn" onclick="petCompanion()">Okşa · +Sadakat</button>
+    <button class="btn ghost" onclick="closeModal()" style="margin-top:10px;">Kapat</button>
+  `);
+};
+window.petCompanion = async function(){
+  player.companion.loyalty = Math.min(100, player.companion.loyalty + 3);
+  const { error } = await supabase.from('player_state').update({ companion: player.companion }).eq('user_id', session.user.id);
+  closeModal();
+  if(error){ toast('Kaydedilemedi'); return; }
+  document.getElementById('companionMoodMain').textContent = `${player.companion.mood} · Seviye ${player.companion.level} · Sadakat %${player.companion.loyalty}`;
+  toast(player.companion.name + ' mutlu görünüyor ✦');
+};
+
+/* ---------------- profile ---------------- */
+window.openProfile = function(){
+  openModal(`
+    <div class="eyebrow">Doğum Haritan</div>
+    <div class="display" style="font-size:19px; margin:4px 0 14px;">${player.name}</div>
+    <div class="reveal-grid">
+      <div class="reveal-card"><div class="k">Güneş</div><div class="v">${player.sun}</div></div>
+      <div class="reveal-card"><div class="k">Ay</div><div class="v">${player.moon}</div></div>
+      <div class="reveal-card"><div class="k">Yükselen</div><div class="v">${player.rising}</div></div>
+      <div class="reveal-card"><div class="k">Element</div><div class="v">${player.element}</div></div>
+    </div>
+    <p style="font-size:11.5px; color:var(--parchment-dim); line-height:1.6;">Sembolik rehberlik amaçlıdır, kesin gerçeklik iddiası taşımaz.</p>
+    <button class="btn ghost" onclick="closeModal()" style="margin-top:12px;">Kapat</button>
+  `);
+};
+
+/* ---------------- journal ---------------- */
+window.updateSliderLabel = function(sldId, lblId){ document.getElementById(lblId).textContent = document.getElementById(sldId).value; };
+
+let journalEntries = [];
+async function loadJournalHistory(){
+  const { data, error } = await supabase.from('journal_entries').select('*').eq('user_id', session.user.id).order('created_at', { ascending:false }).limit(20);
+  if(!error) journalEntries = data || [];
+}
+function renderJournalHistory(){
+  const el = document.getElementById('journalHistory');
+  if(!journalEntries.length){ el.innerHTML = '<p style="color:var(--parchment-dim); font-size:13px;">Henüz kayıt yok. İlk günlüğünü yaz.</p>'; return; }
+  el.innerHTML = journalEntries.map(j=>{
+    const d = new Date(j.created_at).toLocaleDateString('tr-TR',{day:'numeric',month:'long'});
+    return `<div class="journal-entry"><div class="date">${d}</div><p>${j.entry_text || '(not eklenmedi)'}</p></div>`;
+  }).join('');
+}
+
+window.submitJournal = async function(){
+  const text = document.getElementById('journalText').value.trim();
+  const mood = +document.getElementById('sldMood').value;
+  const energy = +document.getElementById('sldEnergy').value;
+  const stress = +document.getElementById('sldStress').value;
+  const btn = document.getElementById('journalSaveBtn'); btn.disabled = true; btn.textContent='Kaydediliyor...';
+
+  const { error: e1 } = await supabase.from('journal_entries').insert({
+    user_id: session.user.id, mood, energy, stress, entry_text: text || null,
+  });
+
+  player.stones.heart.xp = Math.min(player.stones.heart.max, player.stones.heart.xp + 25);
+  const heartQuest = player.quests.find(q=>q.title.includes('günlüğünü'));
+  if(heartQuest) heartQuest.state = 'ready';
+  const { error: e2 } = await supabase.from('player_state').update({ stones: player.stones, quests: player.quests }).eq('user_id', session.user.id);
+
+  btn.disabled = false; btn.textContent = 'Günlüğü kaydet · +XP';
+  if(e1 || e2){ toast('Kaydedilemedi, tekrar dene'); return; }
+
+  document.getElementById('journalText').value='';
+  await loadJournalHistory(); renderJournalHistory(); renderStones(); renderQuests();
+  setAura(mood/10);
+  toast('Günlük kaydedildi · Kalp Taşı +25 XP');
+};
+
+/* ---------------- quests ---------------- */
+function renderQuests(){
+  const el = document.getElementById('questList');
+  el.innerHTML = player.quests.map((q,i)=>{
+    let btn;
+    if(q.state==='ready') btn = `<button class="qclaim ready" onclick="claimQuest(${i})">Al</button>`;
+    else if(q.state==='done') btn = `<button class="qclaim done" disabled>Alındı</button>`;
+    else if(q.state==='locked') btn = `<button class="qclaim locked" disabled>Kilitli</button>`;
+    else btn = `<button class="qclaim locked" onclick="claimQuest(${i})">Tamamla</button>`;
+    return `<div class="quest"><div class="qicon">${q.icon}</div><div class="qbody"><b>${q.title}</b><div class="qreward">${q.reward}</div></div>${btn}</div>`;
+  }).join('');
+}
+window.claimQuest = async function(i){
+  const q = player.quests[i];
+  if(q.state==='done' || q.state==='locked') return;
+  q.state='done';
+  if(q.currencyType) player.currencies[q.currencyType] = (player.currencies[q.currencyType]||0) + q.amount;
+  const { error } = await supabase.from('player_state').update({ quests: player.quests, currencies: player.currencies }).eq('user_id', session.user.id);
+  if(error){ toast('Kaydedilemedi'); return; }
+  document.getElementById('statSoulDust').textContent = player.currencies.soulDust;
+  document.getElementById('statCrystals').textContent = player.currencies.moonCrystals;
+  renderQuests();
+  toast('Ödül alındı ✦ ' + q.reward);
+};
+
+/* ---------------- mentor chat ---------------- */
+let chatHistory = [];
+async function loadChatHistory(){
+  const { data, error } = await supabase.from('mentor_messages').select('*').eq('user_id', session.user.id).order('created_at', { ascending:true }).limit(30);
+  if(!error) chatHistory = data || [];
+}
+function renderChatLog(){
+  const log = document.getElementById('chatLog');
+  if(!chatHistory.length){
+    log.innerHTML = `<div class="msg mentor"><span class="tag">Mentor</span>Merhaba ${player.name}, buradayım. Bugün ne düşünüyorsun?</div>`;
+    return;
+  }
+  log.innerHTML = chatHistory.map(m=> m.role==='user'
+    ? `<div class="msg user">${escapeHtml(m.content)}</div>`
+    : `<div class="msg mentor"><span class="tag">Mentor</span>${escapeHtml(m.content)}</div>`
+  ).join('');
+  log.parentElement.scrollTop = log.parentElement.scrollHeight;
+}
+function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+window.sendChat = async function(){
+  const input = document.getElementById('chatInput');
+  const val = input.value.trim(); if(!val) return;
+  input.value='';
+  const btn = document.getElementById('chatSendBtn'); btn.disabled = true;
+
+  const log = document.getElementById('chatLog');
+  log.innerHTML += `<div class="msg user">${escapeHtml(val)}</div>`;
+  log.parentElement.scrollTop = log.parentElement.scrollHeight;
+  await supabase.from('mentor_messages').insert({ user_id: session.user.id, role:'user', content: val });
+
+  try{
+    const res = await fetch(MENTOR_ENDPOINT, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        message: val,
+        context: { name: player.name, sun: player.sun, moon: player.moon, rising: player.rising, recentJournal: journalEntries.slice(0,5) }
+      })
+    });
+    const data = await res.json();
+    const reply = data.reply || 'Şu an yanıt veremiyorum, biraz sonra tekrar dener misin?';
+    log.innerHTML += `<div class="msg mentor"><span class="tag">Mentor</span>${escapeHtml(reply)}</div>`;
+    log.parentElement.scrollTop = log.parentElement.scrollHeight;
+    await supabase.from('mentor_messages').insert({ user_id: session.user.id, role:'mentor', content: reply });
+  }catch(e){
+    log.innerHTML += `<div class="msg mentor"><span class="tag">Mentor</span>Bağlantı kurulamadı. Netlify fonksiyonunun deploy edildiğinden ve OPENAI_API_KEY'in tanımlı olduğundan emin ol.</div>`;
+  }finally{
+    btn.disabled = false;
+  }
+};
+
+/* ---------------- modal / toast / aura ---------------- */
+window.openModal = function(html){ document.getElementById('modalSheet').innerHTML = html; document.getElementById('modalBackdrop').classList.add('show'); };
+window.closeModal = function(){ document.getElementById('modalBackdrop').classList.remove('show'); };
+let toastTimer;
+function toast(msg){ const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove('show'), 2600); }
+function setAura(moodFrac){
+  const hues = ['#8B6FB0','#5A4E9A','#4A7FA6','#4E9A6B','#C9752E'];
+  const idx = Math.min(hues.length-1, Math.floor(moodFrac*hues.length));
+  document.documentElement.style.setProperty('--aura-color', hues[idx]);
+}
+
+/* ---------------- starfield ---------------- */
+function initStars(){
+  const canvas = document.getElementById('stars'); const ctx = canvas.getContext('2d');
+  function size(){ canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; }
+  size(); window.addEventListener('resize', size);
+  const stars = Array.from({length:70}, ()=>({ x:Math.random(), y:Math.random(), r:Math.random()*1.3+0.3, p:Math.random()*Math.PI*2, s:Math.random()*0.02+0.008 }));
+  function draw(t){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    stars.forEach(s=>{
+      const alpha = 0.25 + Math.abs(Math.sin(s.p + t*s.s))*0.55;
+      ctx.beginPath(); ctx.fillStyle = `rgba(241,233,218,${alpha})`; ctx.arc(s.x*canvas.width, s.y*canvas.height, s.r, 0, Math.PI*2); ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+}
+
+/* ---------------- boot ---------------- */
+renderObProgress();
+initStars();
+setAura(0.55);
+
+(async function boot(){
+  const { data } = await supabase.auth.getSession();
+  if(data.session){ session = data.session; await afterLogin(); }
+})();
+</script>
+</body>
+</html>
